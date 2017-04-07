@@ -827,21 +827,15 @@ int closed(struct tableau * t) {
 
 int countNumberOfLinesOfFile(char *fileName) {
 
+// create a file, indicate that we are only reading
 FILE* inputFile = fopen(fileName, "r");
-int nextCharacter;
-int numberOfLines;
+int numberOfLines = 0;
 
-do 
-{
-    nextCharacter = fgetc(inputFile);
-    if(nextCharacter == '\n')
-        numberOfLines++;
-} while (nextCharacter != EOF);
-
-// last line doesn't end with a new line!
-// but there has to be a line at least before the last line
-if(nextCharacter != '\n' && numberOfLines != 0) 
-    numberOfLines++;
+ for (int nextCharacter = getc(inputFile); nextCharacter != EOF; nextCharacter = getc(inputFile)) {
+        if (nextCharacter == '\n') {// Increment numberOfLines if this character is newline
+            numberOfLines = numberOfLines + 1;
+        }
+ }
 
 fclose(inputFile);
 
@@ -850,16 +844,23 @@ return numberOfLines;
 }
 
 
-int main()
+int main(int argc, char * argv[])
 
 { /*input a string and check if its a propositional formula */
     
-    
+    if(argc < 2) {
+    	// user failed to provide an input file
+    	printf("Please provide at least input file !");
+    	exit(1);
+
+    }
+
+
     char *name = malloc(Fsize);
     FILE *fp, *fpout;
 
-    char * fileInputName = "input.txt";
-    char * fileOutputName = "output.txt";
+    char * fileInputName = argv[1];
+    char * fileOutputName = argc == 3 ? argv[2] : "output.txt";
     
     /* reads from input.txt, writes to output.txt*/
     if ((  fp=fopen(fileInputName,"r"))==NULL){printf("Error opening file");exit(1);}
@@ -867,7 +868,7 @@ int main()
     
     // count number of lines of the file
     int numberOfLines = countNumberOfLinesOfFile(fileInputName);
-   /*
+   
     for(int j=0;j<numberOfLines;j++)
     {
         fscanf(fp, "%s",name);//read formula
@@ -890,8 +891,7 @@ int main()
             else fprintf(fpout, "%s is satisfiable.\n", name);
         }
         else fprintf(fpout, "I told you, %s is not a formula.\n", name);
-    }*/
-    printf("Number of lines: %d\n",numberOfLines );    
+    }
 
     
     fclose(fp);
