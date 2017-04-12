@@ -722,16 +722,17 @@ int returnSymbolValue(char symbol) {
      if (symbol == 'r') {
          return 0;
     }
-    if (symbol =='p'){
+    else if (symbol =='p'){
         return 1;
         
-    } else  {
+    }else (symbol == 'q')  {
         // must be q
         return 2;
         
     }
     
 }
+
 
 // returns 1 if the branch is open, 0 if it is closed
 // gets a leave and works it way up to the root
@@ -825,21 +826,20 @@ int closed(struct tableau * t) {
     
 }
 
-int countNumberOfLinesOfFile(char *fileName) {
+void deleteTree(struct tableau * t) {
+	
+	// delete tree in post order style
+	if (t->left != NULL) {
+		deleteTree(t->left);
+	}
 
-// create a file, indicate that we are only reading
-FILE* inputFile = fopen(fileName, "r");
-int numberOfLines = 0;
+	if(t->right != NULL) {
+		deleteTree(t->right);
+	}
 
- for (int nextCharacter = getc(inputFile); nextCharacter != EOF; nextCharacter = getc(inputFile)) {
-        if (nextCharacter == '\n') {// Increment numberOfLines if this character is newline
-            numberOfLines = numberOfLines + 1;
-        }
- }
+	free(t);
 
-fclose(inputFile);
 
-return numberOfLines;
 
 }
 
@@ -867,30 +867,26 @@ int main(int argc, char * argv[])
     if ((  fpout=fopen(fileOutputName,"w"))==NULL){printf("Error opening file");exit(1);}
     
     // count number of lines of the file
-    int numberOfLines = countNumberOfLinesOfFile(fileInputName);
+   // int numberOfLines = countNumberOfLinesOfFile(fileInputName);
    
-    for(int j=0;j<numberOfLines;j++)
-    {
-        fscanf(fp, "%s",name);//read formula
-        switch (parse(name))
-        {case(0): fprintf(fpout, "%s is not a formula.  ", name);break;
-            case(1): fprintf(fpout, "%s is a proposition.  ", name);break;
-            case(2): fprintf(fpout, "%s is a negation.  ", name);break;
-            case(3):fprintf(fpout, "%s is a binary.  ", name);break;
-            default:fprintf(fpout, "What the f***!  ");
-        }
-        
+  //  for(int j=0;j<numberOfLines;j++)
+     while(fscanf(fp, "%s",name) != EOF) {
+
+
+
+       // fprintf(fpout, " Hi q" );
         //make new tableau with name at root, no children, no parent
         
-        struct tableau t={name, NULL, NULL, NULL};
-        
+//        struct tableau t={name, NULL, NULL, NULL};
+        struct tableau * t = initializeTableauOnHeap(name);
         //expand the root, recursively complete the children
         if (parse(name)!=0)
-        { complete(&t);
-            if (closed(&t)) fprintf(fpout, "%s is not satisfiable.\n", name);
+        { complete(t);
+            if (closed(t)) fprintf(fpout, "%s is not satisfiable.\n", name);
             else fprintf(fpout, "%s is satisfiable.\n", name);
         }
         else fprintf(fpout, "I told you, %s is not a formula.\n", name);
+        deleteTree(t);
     }
 
     
