@@ -725,7 +725,7 @@ int returnSymbolValue(char symbol) {
     else if (symbol =='p'){
         return 1;
         
-    }else (symbol == 'q')  {
+    }else  {
         // must be q
         return 2;
         
