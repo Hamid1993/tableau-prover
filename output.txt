@@ -1,0 +1,9 @@
+I told you, p,q is not a formula.
+-(p>p) is not satisfiable.
+I told you, -(p>(q is not a formula.
+I told you, >p)),z is not a formula.
+-((p>q)>p) is satisfiable.
+--((pvq)>(-p^-q)) is satisfiable.
+(p^-p) is not satisfiable.
+((p>q)^(q>p)) is satisfiable.
+-((p>(qvr))>((p>q)v(p>r))) is not satisfiable.

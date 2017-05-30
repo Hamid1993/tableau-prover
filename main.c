@@ -870,6 +870,10 @@ int main(int argc, char * argv[])
    // int numberOfLines = countNumberOfLinesOfFile(fileInputName);
    
   //  for(int j=0;j<numberOfLines;j++)
+
+    // get all literals that are going to be used
+
+    
      while(fscanf(fp, "%s",name) != EOF) {
 
 
