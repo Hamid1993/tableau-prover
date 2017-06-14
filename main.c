@@ -714,10 +714,15 @@ void complete(struct tableau *t) {
     depthFirstSearch(t);
 }
 
+typedef struct {
+    char symbol;
+    SymbolNode* next;
+}SymbolNode;
 
 
 // returns 0 if symbol  = 'r', 1 if symbol = 'p', 2 if symbol = 'q'
 int returnSymbolValue(char symbol) {
+    static int counter = 0;
     
      if (symbol == 'r') {
          return 0;
