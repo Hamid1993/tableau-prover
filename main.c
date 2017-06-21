@@ -1,7 +1,4 @@
 //
-//  main.c
-//  coursework
-//
 //  Created by Hamidulah Doust on 28.12.16.
 //  Copyright © 2016 Hamidulah Doust. All rights reserved.
 //
@@ -19,13 +16,22 @@
 
 
 
+// an upper bound for the amount of characters a single formula can have
+// edit this variable if you use formulas with more characters than 50
+int MAXIMUM_SIZE_OF_FORMULA=50;
 
-int Fsize=50;
-int cases=10;
+/*typedef struct tableau tableau;*/
 
-
-int i;
-int j;
+struct tableau {
+    char *root;
+    struct  tableau *left;
+    struct tableau *right;
+    struct tableau *parent;
+    
+    // determines if the node in the tableau was fully processed
+    // 1 means it was fully processed, 0 means it wasnt
+    int finished ;
+}*tab, *node, *node1, *kid, *pa;
 
 
 
@@ -50,29 +56,135 @@ typedef struct {
 }SplitFormula;
 
 
-/*typedef struct tableau tableau;*/
 
-struct tableau {
-    char *root;
-    struct  tableau *left;
-    struct tableau *right;
-    struct tableau *parent;
-    
-    // determines if the node in the tableau was fully processed
-    // 1 means it was fully processed, 0 means it wasnt
-    int finished ;
-}*tab, *node, *node1, *kid, *pa;
+struct symbolNode{
+    char symbol;
+    int value;
+    struct symbolNode * next;
+};
 
+struct symbolNode* createSymbolNode(char symbol, int value) {
 
-
-// returns 1 if c is a proposition, otherwise 0
-int isProposition(char c) {
-    if (c == 'p' || c == 'q' || c == 'r') {
-        return 1;
-    } else {
-        return 0;
-    }
+      // doesnt exist yet, so add new symbol
+    struct symbolNode * newSymbol = malloc(sizeof(struct symbolNode));
+    newSymbol->symbol = symbol;
+    newSymbol->value = value;
+    newSymbol->next = NULL; 
+    return newSymbol;
 }
+
+
+
+
+// this method gets not used directly
+// use the methods: getTotalNumberOfPropositions, getIndexFromProposition, getPropositionFromIndex instead
+// if the symbol hasnt been seen before it adds it to the list
+// if additionalParameter is -1 , ignore it, meaning insert it into the list and return the value / look the value up if it is in the list
+// if additionalParameter is -2 ,return the total number of symbols
+// if additionalParameter has another value, return the ASCII CODE for the symbol which belongs to the provided value, -1 if it doesnt exist
+int returnSymbolValue(char symbol, int additionalParameter) {
+
+// init once
+static int counter = 0;
+static struct symbolNode * list = NULL;
+
+
+// check what kind of information is needed by the invoker
+if (additionalParameter == -2) {
+    // only return the total number of symbols seen so far
+    return counter;
+} else if (additionalParameter != -1) { 
+	// in this case we want to return the ASCII symbol code for a provided value if it is stored, -1 otherwise
+	struct symbolNode * current = list;
+	while (current!= NULL) {
+		if (current->value == additionalParameter) {
+			return current->symbol;
+		}
+		current = current->next;
+	}
+	// return -1 indicating that there is no entry for this value stored
+	return -1;
+
+} else {
+	// in this case the additionalParameter is set to -1, i.e. ignore the value 
+    // user wants the number of a specific symbol
+    // check if the list is empty
+    if (list == NULL) {
+    // update head
+    list = createSymbolNode(symbol, counter);
+    // update counter
+    counter++;
+    return counter-1;
+
+    }
+
+    // check if a node for this symbol already exist
+    struct symbolNode * firstNode = list;
+    struct symbolNode * secondNode = firstNode->next;
+
+
+
+    while (secondNode != NULL) {
+        if (firstNode->symbol == symbol) {
+            return firstNode->value;
+        }
+        firstNode = secondNode;
+        secondNode = secondNode->next;
+    }
+
+    // must check if the last node contains the symbol
+    if (firstNode->symbol == symbol) {
+        return firstNode->value;
+    } 
+
+    // doesnt exist yet, so add new symbol node
+    struct symbolNode * newSymbol = createSymbolNode(symbol, counter);
+
+    // insert into the end of the list
+    firstNode->next = newSymbol;
+    // update counter
+    counter++;
+
+    //return counter-1;
+    //return newSymbol->value;
+}
+    
+}
+
+// returns the total number of propositions seen so far
+int getTotalNumberOfPropositions() {
+	return returnSymbolValue('a', -2);
+}
+
+// return the index the proposition has in the list, if the proposition doesnt exist yet add it
+int getIndexFromProposition(char proposition) {
+	return returnSymbolValue(proposition, -1);
+}
+
+// return the proposition which belongs to the index, returns -1 if the index is invalid
+char getPropositionFromIndex(int index) {
+	if(index < 0) {
+		return -1;
+	}
+	return (char) returnSymbolValue('a', index);
+}
+
+// returns 1 if the next symbol is a proposition, otherwise 0
+int isProposition(char symbol) {
+    static char specialSymbols [] = {'^','v','<','>','(',')','-'};
+
+    for (int i = 0; i < sizeof(specialSymbols)/sizeof(char); i++) {
+        if (specialSymbols[i] == symbol) {
+            return 0;
+        }
+    }
+
+    // this symbol is a proposition, so store it
+   	getIndexFromProposition(symbol);
+    return 1;
+}
+
+
 
 // returns a Splitformula struct initialized in the heap with the passed parameters
 SplitFormula * initializeSplitFormula(char * firstFormula, char * secondFormula, char operator) {
@@ -172,20 +284,12 @@ BinaryInfo createBinaryInfoFromBinaryBracketFormula (char *g)  {
         
         indexOfOperator = validLiteral(g, i);
         countFormulas++;
-     
-    }
-     
-     
-     
-     
-     
-     
+    } 
  }
     
     BinaryInfo * info = malloc(sizeof(BinaryInfo));
     info->binaryOperatorIndex = indexOfOperator;
     info->lastBracketIndex = lastBracketIndex;
-    
     return *info;
 
 }
@@ -238,7 +342,7 @@ int validBracket(char *g, int startIndex) {
         if(g[i] == '-') {
             continue;
         }
-        // check if the next symbol is a literal, if so valid contains the index after the literal, otherwise 0
+        // check if the next symbol is a literal, if so indexAfterLiteral contains the index after the literal, otherwise 0
         int indexAfterLiteral = validLiteral(g,i);
         
         if (g[i] == '(') {
@@ -257,9 +361,6 @@ int validBracket(char *g, int startIndex) {
                 return ERROR_VALUE;
                 
             }
-            
-                // set i to index-1 because the index gets incremented anyway
-              //  i = index;
                 formulaCounter++;
             
                 // check if we are finished
@@ -714,58 +815,57 @@ void complete(struct tableau *t) {
     depthFirstSearch(t);
 }
 
-typedef struct {
-    char symbol;
-    SymbolNode* next;
-}SymbolNode;
 
 
-// returns 0 if symbol  = 'r', 1 if symbol = 'p', 2 if symbol = 'q'
-int returnSymbolValue(char symbol) {
-    static int counter = 0;
-    
-     if (symbol == 'r') {
-         return 0;
-    }
-    else if (symbol =='p'){
-        return 1;
-        
-    }else  {
-        // must be q
-        return 2;
-        
-    }
-    
-}
+void printCurrentTable() {
+	// get number of stored symbols first
+	int total = getTotalNumberOfPropositions();
+
+	char values [total];
+
+	for(int i = 0; i < total; i++ ) {
+		values[i] = (char) getPropositionFromIndex(i);
+		printf("Value with index %d is %c \n",i, values[i] );
+	}
 
 
-// returns 1 if the branch is open, 0 if it is closed
-// gets a leave and works it way up to the root
-int checkIfBranchIsOpen(struct tableau* leave) {
+
+
+	}
+
+
+
+// creates a possible solution for a proposition in form of a tableau, which represents the leave
+// if the first entry of the array contains -1 then the solution is invalid, otherwise valid
+int * createSolutionVectorForLeave(struct tableau* leave) {
     
     // use two boolean arrays, one tracks the occurences of propositions, the other one of negated propositions where 1 means "occured" and 0 means "not occured"
-    int  propositions [] = {0,0,0};
-    int negatedPropositions [] = {0,0,0};
-    // since we have only three possible propositions r, p, q
-    // use the array to determine if the branch is satisfiable
+    // -2 indicates that we want to have the number of symbols stored so far
+    int numberOfSymbols = getTotalNumberOfPropositions();
+    int  propositions [numberOfSymbols] ;
+    int negatedPropositions [numberOfSymbols] ;
+    memset( propositions, 0, numberOfSymbols*sizeof(int) );
+	memset( negatedPropositions, 0, numberOfSymbols*sizeof(int) );
+
+
+    int * solutionvector  = (int *) malloc(sizeof(int)*numberOfSymbols);
 
     
     struct tableau * current = leave;
     
     do {
-    
         // check if the current formula is a proposition or a negated proposition
         if(isFinished(current->root)) {
             
             if(current->root[0] == '-' ) {
                 
-                int index = returnSymbolValue(current->root[1]);
+                int index = getIndexFromProposition(current->root[1]);
                 // mark that this negated proposition has occured
                 // it doesnt matter how often a proposition/ negated proposition occurs
                 negatedPropositions[index] = 1;
                 
             } else {
-                int index = returnSymbolValue(current->root[0]);
+                int index = getIndexFromProposition(current->root[0]);
                 // mark that this proposition has occured
                 propositions[index] = 1;
             }
@@ -777,60 +877,75 @@ int checkIfBranchIsOpen(struct tableau* leave) {
         
     }while (current != NULL);
     
-    // at first mark it as satisfiable, now compare if both arrays have an index where they both contain
-    // the value 1, if so this means this branch is not satisfiable
-    int returnValue = 1;
+    int errorValue = 0;
     
     // check if the array only contains valid values
-    for(int i = 0; i < 3; i++) {
+    for(int i = 0; i < numberOfSymbols; i++) {
         
         // check if both are one
         if(propositions[i]&& negatedPropositions[i]) {
-            returnValue = 0;
+            errorValue = 1;
             break;
+        } else { 
+
+            // complete solution vector, this is one possible solution 
+            if (negatedPropositions[i] == 1) {
+                solutionvector[i] = 0;
+            } else {
+                solutionvector[i] = 1;
+            }
         }
     }
-    return returnValue;
+
+    // check if solution is valid, otherwise first entry contains -1
+    if (errorValue == 1) {
+        solutionvector[0] = -1;
+    }
+
+    return solutionvector;
     
 }
 
 
-// checks if the tableau is closed by finding all leaves and check for each leave if the branch is open
-// returns 1 if the tableau is closed, 0 otherwise
-int closed(struct tableau * t) {
-    
-    
-    
-    if(t->left != NULL) {
-        
-        // find leave
-        // just change the returnvalue in case a branch is found because we are finished then
-        if(!closed(t->left)) {
-             return 0;
-        }
-    } else {
-        
-        // found leave
-        if(checkIfBranchIsOpen(t)) {
-            // found one branch
-             return 0;
 
-        }
+// creates a possible solution for a proposition in form of a tableau, which represents the root
+// if the first entry of the array contains -1 then the solution is invalid, otherwise valid
+int * createSolutionVectorForRoot(struct tableau * t) {
+
+    int totalNumOfSymbols = getTotalNumberOfPropositions();
+    int * leftSolutionVector = NULL;
+    int * rightSolutionVector = NULL;
+
+    // if the left is null this implies the right is null in this construction of a binary tree
+    if(t->left != NULL) {
+       leftSolutionVector = createSolutionVectorForRoot(t->left);
+    } else {
+
+        // found leave, is left branch is null the right must be null as well
+        return createSolutionVectorForLeave(t);
+        
     }
     
     if (t->right != NULL) {
-        
-        // find leave
-        if(!closed(t->right)) {
-            return 0;
-        }
-    }
+       rightSolutionVector = createSolutionVectorForRoot(t->right);
+    } 
     
-    
-    return 1;
-    
-}
+    // check if at least one solution is valid
+    if (leftSolutionVector[0]!= -1 || rightSolutionVector == NULL) {
+    	// free other memory which is not needed
+    	if (rightSolutionVector != NULL) {
+    		free(rightSolutionVector);
+    	}
 
+        return leftSolutionVector;
+    } else {
+    	// the left solution vector always has a value which is not NULL
+    	free(leftSolutionVector);
+        return rightSolutionVector;
+    } 
+}
+    
+// delete all children, need to free the memory of t yourself
 void deleteTree(struct tableau * t) {
 	
 	// delete tree in post order style
@@ -842,11 +957,10 @@ void deleteTree(struct tableau * t) {
 		deleteTree(t->right);
 	}
 
-	free(t);
-
 
 
 }
+
 
 
 int main(int argc, char * argv[])
@@ -859,9 +973,8 @@ int main(int argc, char * argv[])
     	exit(1);
 
     }
-
-
-    char *name = malloc(Fsize);
+    //store the temporary formula in this variable
+    char *name = malloc(MAXIMUM_SIZE_OF_FORMULA);
     FILE *fp, *fpout;
 
     char * fileInputName = argv[1];
@@ -870,32 +983,47 @@ int main(int argc, char * argv[])
     /* reads from input.txt, writes to output.txt*/
     if ((  fp=fopen(fileInputName,"r"))==NULL){printf("Error opening file");exit(1);}
     if ((  fpout=fopen(fileOutputName,"w"))==NULL){printf("Error opening file");exit(1);}
-    
-    // count number of lines of the file
-   // int numberOfLines = countNumberOfLinesOfFile(fileInputName);
-   
-  //  for(int j=0;j<numberOfLines;j++)
-
-    // get all literals that are going to be used
-
-    
+    int lineCounter = 1;
      while(fscanf(fp, "%s",name) != EOF) {
-
-
-
-       // fprintf(fpout, " Hi q" );
+    	
         //make new tableau with name at root, no children, no parent
         
-//        struct tableau t={name, NULL, NULL, NULL};
-        struct tableau * t = initializeTableauOnHeap(name);
+       struct tableau t = {name, NULL, NULL, NULL};
         //expand the root, recursively complete the children
+       fprintf(fpout, "---------Line %d-------------\n",lineCounter);
         if (parse(name)!=0)
-        { complete(t);
-            if (closed(t)) fprintf(fpout, "%s is not satisfiable.\n", name);
-            else fprintf(fpout, "%s is satisfiable.\n", name);
+        { 
+        	// process the tableau
+        	complete(&t);
+
+        	// get a solution vector and look up if it is valid
+        	int * solutionvector = createSolutionVectorForRoot(&t);
+        	if(solutionvector[0] != -1) {
+
+        	int totalNumOfSymbols = getTotalNumberOfPropositions();
+			int stringSolution [(totalNumOfSymbols*4+1)] ;
+			    fprintf(fpout, "\"%s\" is satisfiable. \n", name);    
+        		for(int i = 0; i < totalNumOfSymbols; i++) {
+        		stringSolution[i*4] = getPropositionFromIndex(i);
+        		stringSolution[i*4+1] = '=';
+        		stringSolution[i*4+2] = solutionvector[i];
+        		stringSolution[i*4+3] = ',';
+        		fprintf(fpout,"%c%c%d%c",stringSolution[i*4],stringSolution[i*4+1],stringSolution[i*4+2],stringSolution[i*4+3] );
+        		}
+        		fprintf(fpout,"\n");
+
+        	} else {
+        	fprintf(fpout, "\"%s\" is not satisfiable\n", name);    
+
+        	}
+        
         }
-        else fprintf(fpout, "I told you, %s is not a formula.\n", name);
-        deleteTree(t);
+        else {
+        fprintf(fpout, "\"%s\" not a formula.\n", name);
+    	}
+
+        deleteTree(&t);
+        lineCounter++;
     }
 
     
