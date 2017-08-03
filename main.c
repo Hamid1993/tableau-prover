@@ -2,37 +2,34 @@
 //  Created by Hamidulah Doust on 28.12.16.
 //  Copyright © 2016 Hamidulah Doust. All rights reserved.
 //
-
 #include "constants.h"
-#include "parser.c"
-#include "completeTableau.c"
-#include "createSolutionFromTableau.c"
+#include "parser.h"
+#include "completeTableau.h"
+#include "createSolutionFromTableau.h"
+#include "helperMethods.h"
 
-
-
-
+// an upper bound for the amount of characters a single formula can have
+// edit this variable if you use formulas with more characters than 50
+int MAXIMUM_SIZE_OF_FORMULA=50;
 
 void printCurrentTable() {
-	// get number of stored symbols first
-	int total = getTotalNumberOfPropositions();
-
-	char values [total];
-
-	for(int i = 0; i < total; i++ ) {
-		values[i] = (char) getPropositionFromIndex(i);
-		printf("Value with index %d is %c \n",i, values[i] );
-	}
-	}
+  int total = getTotalNumberOfPropositions();
+  char values [total];
+  for(int i = 0; i < total; i++ ) {
+    values[i] = (char) getPropositionFromIndex(i);
+    printf("Value with index %d is %c \n",i, values[i] );
+  }
+}
 
 // delete all children, need to free the memory of t yourself
 void deleteTree(struct tableau * t) {
-	// delete tree in post order style
-	if (t->left != NULL) {
-		deleteTree(t->left);
-	}
-	if(t->right != NULL) {
-		deleteTree(t->right);
-	}
+  // delete tree in post order style
+  if (t->left != NULL) {
+    deleteTree(t->left);
+  }
+  if(t->right != NULL) {
+    deleteTree(t->right);
+  }
 }
 
 int main(int argc, char * argv[]) {
@@ -51,8 +48,6 @@ int main(int argc, char * argv[]) {
   if ((  fp=fopen(fileInputName,"r"))==NULL){printf("Error opening file");exit(1);}
   if ((  fpout=fopen(fileOutputName,"w"))==NULL){printf("Error opening file");exit(1);}
   int lineCounter = 1;
-    
-    
   while(fscanf(fp, "%s",name) != EOF) {
     //make new tableau with name at root, no children, no parent
     struct tableau t = {name, NULL, NULL, NULL};
@@ -60,8 +55,7 @@ int main(int argc, char * argv[]) {
     fprintf(fpout, "---------Line %d-------------\n",lineCounter);
     // parse checks if it is syntactically correct and stores all propositions
     if (parse(name)!=0) {
-      // process the tableau
-      complete(&t);
+      complete(&t); 
       // get a solution vector and look up if it is valid
       int * solutionvector = createSolutionVectorForRoot(&t);
       if(solutionvector[0] != -1) {
@@ -85,11 +79,8 @@ int main(int argc, char * argv[]) {
         deleteTree(&t);
         lineCounter++;
       }
-    
-    
-    
-    fclose(fp);
-    fclose(fpout);
-    free(name);
-    return(0);
+  fclose(fp);
+  fclose(fpout);
+  free(name);
+  return(0);
 }

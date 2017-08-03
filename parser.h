@@ -9,7 +9,7 @@
 #ifndef parser_h
 #define parser_h
 #include "constants.h"
-#include "helperMethods.c"
+#include "helperMethods.h"
 int validBracket(char *g, int startIndex);
 int parse(char *g);
 int correctFormula(char *g);

@@ -5,19 +5,17 @@
 //  Created by Hamid Doust on 02.08.17.
 //
 //
-
 #ifndef completeTableau_h
 #define completeTableau_h
 #include "constants.h"
+#include "parser.h"
+
 void complete(struct tableau *t);
 void depthFirstSearch(struct tableau * t);
 void processTableauNode(struct tableau* t);
 struct tableau * initializeTableauOnHeap(char * formular);
-
 void addChildrenToAllLeavesOfTree(struct tableau * tree, struct tableau * leftChild, struct tableau * rightChild, char operator);
-
 void addChildrenToOneLeave(struct tableau * leave, struct tableau * leftChild, struct tableau * rightChild, char operator );
-
 SplitFormula * formularProcessor (char * formularString);
 char * doubleNegationProcessor (char * formulaString);
 SplitFormula * negationProcessorWithBrackets(char * g);
