@@ -20,16 +20,17 @@ The program expects at least one command line argument, a text file containing y
     <formula> ::=   (<formula><op><formula>)
     <op>      ::=   v|^|>|<
 
-where `p` is a single literal consisting of a single character. 
- `v` is the disjunction operator
-`^` is the conjunction operator
- `>`right arrow implication
- `<`left array implication
+where `p` is a single literal consisting of a single character<br/> 
+ `v` is the disjunction operator<br/>
+ `^` is the conjunction operator<br/>
+ `>`right arrow implication<br/>
+ `<`left array implication<br/>
  
- You need to start a new line for every single formula. It is not allowed to have whitespace within a formula. You may not use any `<op>` symbols as literal. 
+ You need to start a new line for every single formula. It is not allowed to have whitespace within a formula. You may not use any `<op>` symbols as literal.<br/> 
 Additionally you can provide a filename for your second argument,but then you cannot use the makefile provided here. You will need to edit the makefile or compile and run the program from the terminal manually. If you decide to provide an additional argument the program will name the output result file with the name given from you. Otherwise the outputfile will just be called `output.txt`
-##Example
-An example file called `input.txt` is provided in the repository. An input file could like like this
+
+## Example
+An example file called `input.txt` is provided in the repository. An input file could like like this:
 
 
     -(p>p)
@@ -72,8 +73,9 @@ The `output.txt` would look like this:
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
+
 ## License
-This project is licensed under the MIT License - see the LICENSE.md file for details
+This project is licensed under the MIT License - see the LICENSE.md file for details.
 
 </content>
   <tabTrigger>readme</tabTrigger>
