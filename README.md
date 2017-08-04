@@ -78,5 +78,4 @@ The `output.txt` would look like this:
 This project is licensed under the MIT License - see the LICENSE.md file for details.
 
 </content>
-  <tabTrigger>readme</tabTrigger>
 </snippet>
